@@ -2,122 +2,17 @@ import numpy as np
 import copy
 
 
-
-class Bonus:
-    def __init__(self, A, b):
-        self.A = copy.deepcopy(A)
-        self.b = copy.deepcopy(b)
-        self.n = len(A)
-        self.epsilon = 10 ** -16
-
-        self.L = list()
-        for i in range(self.sumN(self.n)):
-            self.L.append(0)
-
-        self.U = list()
-        for i in range(self.sumN(self.n)):
-            self.U.append(0)
-
-        self.solution = None
-
-        self.LU()
-
-    @staticmethod
-    def sumN(x):
-        val = int((x * (x + 1)) / 2)
-        return val
-
-    def l_index(self, lin, col):
-        return self.sumN(lin) + col
-
-    def u_index(self, lin, col):
-        return self.sumN(self.n) - self.sumN(self.n - lin) + col - lin
-        # [(0,0), (0,1), (0,2) , (1,1), (1,2), (2,2)] -> U
-        #  1,2 -> 4  = 6 - 3 + 2 - 1
-        #  0,2 -> 2 = 6 - 6 + 2
-
-    def geta(self): return self.A
-
-
-    def LU(self):
-
-        for p in range(0, self.n):
-            self.L[self.l_index(p, p)] = 1
-            for i in range(p, self.n):
-                u = copy.deepcopy(self.A[p][i])
-                for k in range(0, p):
-                    u = u - self.L[self.l_index(p, k)] * self.U[self.u_index(k, i)]
-                self.U[self.u_index(p, i)] = copy.deepcopy(u)
-
-            for i in range(p + 1, self.n):
-                l = copy.deepcopy(self.A[i][p])
-                for k in range(0, p):
-                    l = l - self.L[self.l_index(i, k)] * self.U[self.u_index(k, p)]
-                if abs(self.U[self.u_index(p, p)]) > self.epsilon:
-                    l = l / self.U[self.u_index(p, p)]
-                else:
-                    print("impartire la 0")
-                    exit(-3)
-                self.L[self.l_index(i, p)] = copy.deepcopy(l)
-
-    def solve(self):
-        y = [0 for i in range(self.n)]
-        x = [0 for i in range(self.n)]
-        for i in range(self.n):
-            y[i] = self.b[i]
-            for j in range(i):
-                y[i] -= self.L[self.l_index(i, j)] * y[j]
-
-        for i in reversed(range(0, self.n)):
-            x[i] = y[i]
-            for j in range(i + 1, self.n):
-                x[i] -= self.U[self.u_index(i, j)] * x[j]
-            if abs(self.U[self.u_index(i, i)]) > self.epsilon:
-                x[i] /= self.U[self.u_index(i, i)]
-            else:
-                print("impartire la 0")
-                exit(-4)
-
-        self.solution = x
-
-    def get_solution(self):
-        self.solve()
-        return self.solution
-
-    def print_l(self):
-        for i in range(self.n):
-            for j in range(i + 1):
-                print(self.L[self.l_index(i, j)], end=" ")
-            print()
-
-    def print_u(self):
-        for i in range(self.n):
-            for j in range(i, self.n):
-                print(self.U[self.u_index(i, j)], end=" ")
-            print()
-
-
-
-
-
 class Prob:
     def __init__(self, A, b):
         self.A = A
         self.n = len(A)
-        self.A2 = self.copy(A)
+        self.A2 = copy.deepcopy(A)
         self.b = b
 
         self.epsilon = 10 ** -16
         self.solution = [0 for i in range(self.n)]
         self.L = None
         self.U = None
-
-    def copy(self, matrix):
-        A2 = [[0 for i in range(self.n)] for j in range(self.n)]
-        for i in range(self.n):
-            for j in range(self.n):
-                A2[i][j] = matrix[i][j]
-        return A2
 
     def LU(self):
         for p in range(self.n):
@@ -285,6 +180,94 @@ class Prob:
         print("Norma AinvLU - AinvLib este: " + str(norma4) + '\n')
 
 
+class Bonus:
+    def __init__(self, A, b):
+        self.A = copy.deepcopy(A)
+        self.b = copy.deepcopy(b)
+        self.n = len(A)
+        self.epsilon = 10 ** -16
+
+        self.L = list()
+        for i in range(self.sumN(self.n)):
+            self.L.append(0)
+
+        self.U = list()
+        for i in range(self.sumN(self.n)):
+            self.U.append(0)
+
+        self.solution = None
+
+        self.LU()
+
+    @staticmethod
+    def sumN(x):
+        val = int((x * (x + 1)) / 2)
+        return val
+
+    def l_index(self, lin, col):
+        return self.sumN(lin) + col
+
+    def u_index(self, lin, col):
+        return self.sumN(self.n) - self.sumN(self.n - lin) + col - lin
+
+    def LU(self):
+
+        for p in range(0, self.n):
+            self.L[self.l_index(p, p)] = 1
+            for i in range(p, self.n):
+                u = copy.deepcopy(self.A[p][i])
+                for k in range(0, p):
+                    u = u - self.L[self.l_index(p, k)] * self.U[self.u_index(k, i)]
+                self.U[self.u_index(p, i)] = copy.deepcopy(u)
+
+            for i in range(p + 1, self.n):
+                l = copy.deepcopy(self.A[i][p])
+                for k in range(0, p):
+                    l = l - self.L[self.l_index(i, k)] * self.U[self.u_index(k, p)]
+                if abs(self.U[self.u_index(p, p)]) > self.epsilon:
+                    l = l / self.U[self.u_index(p, p)]
+                else:
+                    print("impartire la 0")
+                    exit(-3)
+                self.L[self.l_index(i, p)] = copy.deepcopy(l)
+
+    def solve(self):
+        y = [0 for i in range(self.n)]
+        x = [0 for i in range(self.n)]
+        for i in range(self.n):
+            y[i] = self.b[i]
+            for j in range(i):
+                y[i] -= self.L[self.l_index(i, j)] * y[j]
+
+        for i in reversed(range(0, self.n)):
+            x[i] = y[i]
+            for j in range(i + 1, self.n):
+                x[i] -= self.U[self.u_index(i, j)] * x[j]
+            if abs(self.U[self.u_index(i, i)]) > self.epsilon:
+                x[i] /= self.U[self.u_index(i, i)]
+            else:
+                print("impartire la 0")
+                exit(-4)
+
+        self.solution = x
+
+    def get_solution(self):
+        self.solve()
+        return self.solution
+
+    def print_l(self):
+        for i in range(self.n):
+            for j in range(i + 1):
+                print(self.L[self.l_index(i, j)], end=" ")
+            print()
+
+    def print_u(self):
+        for i in range(self.n):
+            for j in range(i, self.n):
+                print(self.U[self.u_index(i, j)], end=" ")
+            print()
+
+
 if __name__ == "__main__":
     system_matrix = [
         [2.5, 2, 2],
@@ -299,17 +282,17 @@ if __name__ == "__main__":
     ]
     free_array2 = [25, 0, 6]
 
-    pr = Prob(copy.deepcopy(system_matrix), copy.deepcopy(free_array))
+    pr = Prob(copy.deepcopy(system_matrix2), copy.deepcopy(free_array2))
     pr.results()
 
-    bonus = Bonus(system_matrix, free_array)
+    bonus = Bonus(system_matrix2, free_array2)
 
-    print("L de la bonus este: ", end="")
-    print(str(bonus.L))
-    bonus.print_l()
-    print("U de la bonus este: ", end="")
-    print(str(bonus.U))
-    bonus.print_u()
+    # print("L de la bonus este: ", end="")
+    # print(str(bonus.L))
+    # bonus.print_l()
+    # print("U de la bonus este: ", end="")
+    # print(str(bonus.U))
+    # bonus.print_u()
     print("Solutia sistemului de la bonus este: ", end = "")
     print(bonus.get_solution())
 

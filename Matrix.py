@@ -2,7 +2,7 @@ import math
 
 
 class Matrix:
-    EPSILON = 0.000001
+    EPSILON = 10 ** -16
 
     ##### OPERATIONS ######
 

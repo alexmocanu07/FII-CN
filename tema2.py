@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import random
 
 
 class Prob:
@@ -155,12 +156,22 @@ class Prob:
 
         return max
 
+    def print_solution(self):
+        i = 0
+        while i < len(self.solution):
+            j = 0
+            while j < 6 and i < len(self.solution):
+                print(self.solution[i], end=" ")
+                i += 1
+                j += 1
+            print()
     def results(self):
         self.LU()
         print("Determinantul lui A este: " + str(self.detA()) + "\n")
 
         self.solution = self.get_solution()
-        print("Solutia sistemului este: " + str(self.solution) + "\n")
+        print("Solutia sistemului este: ", end="")
+        self.print_solution()
 
         print("Solutia sistemului calculata cu numpy este: " + str(self.lib_solution()) + "\n")
 
@@ -251,9 +262,16 @@ class Bonus:
 
         self.solution = x
 
-    def get_solution(self):
+    def print_solution(self):
         self.solve()
-        return self.solution
+        i = 0
+        while i < len(self.solution):
+            j = 0
+            while j < 6 and i < len(self.solution):
+                print(self.solution[i], end=" ")
+                i += 1
+                j += 1
+            print()
 
     def print_l(self):
         for i in range(self.n):
@@ -267,6 +285,36 @@ class Bonus:
                 print(self.U[self.u_index(i, j)], end=" ")
             print()
 
+
+def check_lu(matrix):
+    for size in range(2, len(matrix)):
+        current = [[0 for _ in range(size)] for _ in range(size)]
+        for i in range(size):
+            for j in range(size):
+                current[i][j] = matrix[i][j]
+        if np.linalg.det(np.array(current)) == 0:
+            return False
+
+    return True
+
+
+def generate(size):
+    matr = [[0 for _ in range(size)] for _ in range(size)]
+    vect = [0 for _ in range(size)]
+    random.seed()
+    for i in range(size):
+        for j in range(size):
+            matr[i][j] = random.uniform(-10, 10)
+        vect[i] = random.uniform(-25, 25)
+
+    while not check_lu(matr):
+        for i in range(size):
+            for j in range(size):
+                matr[i][j] = random.uniform(-10, 10)
+            vect[i] = random.uniform(-25, 25)
+
+    return [matr, vect]
+    
 
 if __name__ == "__main__":
     system_matrix = [
@@ -282,10 +330,16 @@ if __name__ == "__main__":
     ]
     free_array2 = [25, 0, 6]
 
-    pr = Prob(copy.deepcopy(system_matrix2), copy.deepcopy(free_array2))
+    size = input("Introduceti dimensiunea matricei: ")
+
+    [matrix, vector] = generate(int(size))
+    # print(matrix)
+    # print(vector)
+
+    pr = Prob(copy.deepcopy(matrix), copy.deepcopy(vector))
     pr.results()
 
-    bonus = Bonus(system_matrix2, free_array2)
+    bonus = Bonus(matrix, vector)
 
     # print("L de la bonus este: ", end="")
     # print(str(bonus.L))
@@ -294,7 +348,7 @@ if __name__ == "__main__":
     # print(str(bonus.U))
     # bonus.print_u()
     print("Solutia sistemului de la bonus este: ", end = "")
-    print(bonus.get_solution())
+    bonus.print_solution()
 
 
 

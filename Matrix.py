@@ -104,42 +104,10 @@ class Matrix:
         return result
 
     @staticmethod
-    def multiply(a, b_temp):
+    def multiply(a, b):
         result = {}
         # 🚨 to make multiplication easier, we use the transpose
-        b = Matrix.transpose(b_temp.copy())
         b = Matrix.transpose_v2("b.txt")
-
-        for aLineIndex in range(0, int(sorted(a.keys())[-1]) + 1):
-            if aLineIndex not in a:
-                continue
-            else:
-                result[aLineIndex] = []
-                for bLineIndex in range(0, int(sorted(a.keys())[-1]) + 1):
-                    if bLineIndex not in b:
-                        continue
-                    # after we pass the cases with [0,0,...,0] (so no lines/column declared), we multiply elements based on their line+col match
-                    else:
-                        sum = 0
-                        aLine = a[aLineIndex]
-                        bLine = b[bLineIndex]
-                        for aCell in aLine:
-                            # find the matching bCell
-                            indexes = [index for index in range(
-                                0, len(bLine)) if bLine[index][1] == aCell[1]]
-                            if (indexes is not None and len(indexes) > 0):
-                                bCell = bLine[indexes[0]]
-                                sum += aCell[0] * bCell[0]
-                        if (sum > 0):
-                            result[aLineIndex].append([sum, bLineIndex])
-        return result
-    @staticmethod
-    def multiply_v2(a, b):
-        result = {}
-        # 🚨 to make multiplication easier, we use the transpose
-        # b = Matrix.sortMatrix(Matrix.transpose(b_temp.copy()))
-        # bT = Matrix.transpose_v2("b.txt")
-        # print(Matrix.compare(b, bT))
         print("Start multiply\n")
         for a_line in a.keys():
             # print("[AAAAAAAAAAAAAAAAA] " + str(a_line) + "\n", end="")
@@ -228,7 +196,7 @@ class Matrix:
 
 
     @staticmethod
-    def translate(filename, type="matrix"):
+    def getMatrix(filename, type="matrix"):
         lines = Matrix.readFromFile(filename)
         if(type == "vector"):
             del lines[-1]

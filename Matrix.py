@@ -20,6 +20,32 @@ class Matrix:
         return result
 
     @staticmethod
+    def transpose_v2(filename):
+        lines = Matrix.readFromFile(filename)
+        lines.pop(0)
+        matrix = dict()
+        for line in lines:
+            data = line.split(", ")
+            if len(data) != 3:
+                continue
+            number = float(data[0])
+            col = int(data[1])
+            lin = int(data[2])
+            elt = matrix.get(lin, "none")
+            if elt == "none":
+                matrix[lin] = [[number, col]]
+            else:
+                exists = False
+                for cell in elt:
+                    if cell[1] == col:
+                        cell[0] += number
+                        exists = True
+                        break
+                if not exists:
+                    matrix[lin].append([number, col])
+        return Matrix.sortMatrix(matrix)
+
+    @staticmethod
     def compare(a, b):
         # line count is different
         if len(a.keys()) != len(b.keys()):
@@ -28,9 +54,12 @@ class Matrix:
         for lineKey in a:
             # line from a is missing from b
             if(lineKey not in b):
+                print("1")
                 return False
             # cell count on line is different
             if len(a[lineKey]) != len(b[lineKey]):
+                print(lineKey, a[lineKey])
+                print(lineKey, b[lineKey])
                 return False
 
             aLine = a[lineKey]
@@ -42,10 +71,12 @@ class Matrix:
                     0, len(bLine)) if bLine[index][1] == aCell[1]]
                 # if bCell is missing (no index found), a != b
                 if indexes is None or len(indexes) != 1:
+                    print("3")
                     return False
                 else:
                     # if bCell is there, but its value is EPSILON-different than the one in aCell, a != b
                     if abs(bLine[indexes[0]][0] - aCell[0]) >= Matrix.EPSILON:
+                        print("4")
                         return False
         return True
 
@@ -77,6 +108,7 @@ class Matrix:
         result = {}
         # 🚨 to make multiplication easier, we use the transpose
         b = Matrix.transpose(b_temp.copy())
+        b = Matrix.transpose_v2("b.txt")
 
         for aLineIndex in range(0, int(sorted(a.keys())[-1]) + 1):
             if aLineIndex not in a:
@@ -102,10 +134,12 @@ class Matrix:
                             result[aLineIndex].append([sum, bLineIndex])
         return result
     @staticmethod
-    def multiply_v2(a, b_temp):
+    def multiply_v2(a, b):
         result = {}
         # 🚨 to make multiplication easier, we use the transpose
-        b = Matrix.sortMatrix(Matrix.transpose(b_temp.copy()))
+        # b = Matrix.sortMatrix(Matrix.transpose(b_temp.copy()))
+        # bT = Matrix.transpose_v2("b.txt")
+        # print(Matrix.compare(b, bT))
         print("Start multiply\n")
         for a_line in a.keys():
             # print("[AAAAAAAAAAAAAAAAA] " + str(a_line) + "\n", end="")
@@ -150,10 +184,11 @@ class Matrix:
             lines.append(x.rstrip())
         return lines
     @staticmethod
-    def getMatrix(filename):
+    def getMatrixAndTranspose(filename):
         lines = Matrix.readFromFile(filename)
         lines.pop(0)
         matrix = dict()
+        transpose = dict()
         for line in lines:
             data = line.split(", ")
             if len(data) != 3:
@@ -173,7 +208,23 @@ class Matrix:
                         break
                 if not exists:
                     matrix[lin].append([number, col])
-        return Matrix.sortMatrix(matrix)
+
+            col = int(data[1])
+            lin = int(data[2])
+            elt = transpose.get(lin, "none")
+            if elt == "none":
+                transpose[lin] = [[number, col]]
+            else:
+                exists = False
+                for cell in elt:
+                    if cell[1] == col:
+                        cell[0] += number
+                        exists = True
+                        break
+                if not exists:
+                    transpose[lin].append([number, col])
+
+        return Matrix.sortMatrix(matrix), Matrix.sortMatrix(transpose)
 
 
     @staticmethod
@@ -203,6 +254,7 @@ class Matrix:
             # if the element is already declared, find index and sum up the values
             if dataLine not in store:
                 store[dataLine] = []
+
 
             try:
                 index = store[dataLine].index([dataValue, dataColumn])

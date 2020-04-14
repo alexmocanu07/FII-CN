@@ -107,12 +107,10 @@ class Matrix:
     def multiply(a, b):
         result = {}
         # 🚨 to make multiplication easier, we use the transpose
-        # b = Matrix.transpose_v2("b.txt")
+        b = Matrix.transpose_v2("b.txt")
         print("Start multiply\n")
         for a_line in a.keys():
-            # print("[AAAAAAAAAAAAAAAAA] " + str(a_line) + "\n", end="")
             for b_line in b.keys():
-                # print("[BBBBB] " + str(b_line) + '\n', end="")
                 a_list = a[a_line]
                 b_list = b[b_line]
 
@@ -134,10 +132,11 @@ class Matrix:
                         b_index += 1
 
                 if sum > 0:
-                    if a_line in result:
-                        result[a_line].append([sum, b_line])
-                    else:
-                        result[a_line] = [[sum, b_line]]
+                    # if a_line in result:
+                    #     result[a_line].append([sum, b_line])
+                    # else:
+                    #     result[a_line] = [[sum, b_line]]
+                    result.setdefault(a_line, []).append([sum, b_line])
         print("end multiply")
         return result
 

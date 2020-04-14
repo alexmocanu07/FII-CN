@@ -3,6 +3,7 @@ import math
 
 class Matrix:
     EPSILON = 0.000001
+    KMAX = 10000
 
     ##### OPERATIONS ######
 
@@ -159,5 +160,19 @@ class Matrix:
         for lineKey in a:
             aLine = a[lineKey]
             if (len(aLine) > 10):
+                return False
+        return True
+
+    @staticmethod
+    def checkDiagonalValues(matrix, wrongValue=0):
+        for lineKey in matrix:
+            matrixLine = matrix[lineKey]
+            indexes = [index for index in range(
+                0, len(matrixLine)) if matrixLine[index][1] == lineKey]
+            # check if there is a diagonal value to search for on the current line
+            if indexes is None or len(indexes) != 1:
+                return False
+            # check if the value is 0 or EPSILON-near-0
+            if abs(matrixLine[indexes[0]][0] - wrongValue) <= Matrix.EPSILON:
                 return False
         return True

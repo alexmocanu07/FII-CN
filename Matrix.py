@@ -2,7 +2,7 @@ import math
 
 
 class Matrix:
-    KMAX = 10
+    KMAX = 10000
     EPSILON = 10 ** -16
 
     ##### OPERATIONS ######
@@ -58,8 +58,8 @@ class Matrix:
                 return False
             # cell count on line is different
             if len(a[lineKey]) != len(b[lineKey]):
-                print(lineKey, a[lineKey])
-                print(lineKey, b[lineKey])
+                # print(lineKey, a[lineKey])
+                # print(lineKey, b[lineKey])
                 return False
 
             aLine = a[lineKey]
@@ -107,7 +107,7 @@ class Matrix:
     def multiply(a, b):
         result = {}
         # 🚨 to make multiplication easier, we use the transpose
-        b = Matrix.transpose_v2("b.txt")
+        # b = Matrix.transpose_v2("b.txt")
         print("Start multiply\n")
         for a_line in a.keys():
             # print("[AAAAAAAAAAAAAAAAA] " + str(a_line) + "\n", end="")
@@ -199,6 +199,7 @@ class Matrix:
     def getMatrix(filename, type="matrix"):
         lines = Matrix.readFromFile(filename)
         if(type == "vector"):
+            lines.pop(0)
             del lines[-1]
             return [float(lines[i]) for i in range(0, len(lines))]
         end = True

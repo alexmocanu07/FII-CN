@@ -7,7 +7,7 @@ def _Norm(x):
 
 def _GaussSeidelLineGenerator(xp, a, b):
     # just to make sure the indexes are available for overriding values after computation
-    xc = [0] * len(xp)
+    xc = [0 for _ in range(len(xp))]
 
     for i in range(0, len(xp)):
         aLine = a[i]
@@ -43,28 +43,88 @@ def _GaussSeidelLineGenerator(xp, a, b):
         xc[i] = top / bottom
     return xc
 
+def computeXc(xp, a, b):
+    # xc = [0 for _ in range(len(xp))]
+    xc = xp.copy()
+    for i in range(len(a.keys())):
+        result = b[i]
+        j = a[i][0][1]
+        index = 0
+        while j < i:
+            result -= a[i][index][0] * xc[j]
+            index += 1
+            j = a[i][index][1]
+        if j != i:
+            print("Am 0 pe diagonala, ia gata")
+            exit(-2)
+        middle = a[i][index][0]  # {1 : [[25, 1], [2, 5], [3, 7]]
+        index += 1
+        if index == len(a[i]):
+            xc[i] = result / middle
+            continue
+        j = a[i][index][1]
+        while index < len(a[i]):
+            result -= a[i][index][0] * xp[j]
+            index += 1
+
+        xc[i] = result / middle
+    return xc
+
+def computeXc_v2(xp, a, b):
+    xc = xp.copy()
+    for i in range(len(a.keys())):
+        top = b[i]
+        poz = 0
+        col = a[i][poz][1]
+        while col < i:
+            top -= a[i][poz][0] * xc[col]
+            poz += 1
+            col = a[i][poz][1]
+        # col >= i
+        if col != i:
+            print("ia gata")
+            exit(-2)
+        bottom = a[i][poz][0]
+        poz += 1
+        while poz < len(a[i]):
+            col = a[i][poz][1]
+            top -= a[i][poz][0] * xp[col]
+            poz += 1
+        xc[i] = top / bottom
+
+    return xc
+
 
 def GaussSeidel(matrix, free):
-    xc = xp = [0] * len(free)
+    xc = [0 for _ in range(len(free))]
+    xp = [0 for _ in range(len(free))]
+    # xc =[1,2,3,4,5]
+    # xp =[1,2,3,4,5]
     k = 0
     delta = None
-    while (True):
-        xp = xc
-        xc = _GaussSeidelLineGenerator(xp, matrix, free)
-        print(k, xc)
-        delta = _Norm([xc[i] - xp[i] for i in range(0, len(xc))])
+    looping = True
+    while looping:
+        xp = xc.copy()
+        xc = computeXc_v2(xp, matrix, free)
+        # print(k, xc)
+        looping = False
+        for i in range(len(xp)):
+            dif = abs(xc[i] - xp[i])
+            if dif > Matrix.EPSILON:
+                looping = True
+                break
         k += 1
-        if (delta >= Matrix.EPSILON and k <= Matrix.KMAX and delta <= 10**8):
+        if k > Matrix.KMAX:
             break
-    if(delta != None and delta < Matrix.EPSILON):
+    if not looping:
         return xc
-    print("Divergență")
-    return None
+    else :
+        return "DIVERGENTA"
 
 
 ##################
 
-a = Matrix.translate("a_1.txt", "matrix")
-b = Matrix.translate("b_1.txt", "vector")
-
+a = Matrix.getMatrix("a_5.txt", "matrix")
+b = Matrix.getMatrix("b_5.txt", "vector")
+# b = [6,7,8,9,1]
 print(GaussSeidel(a, b))

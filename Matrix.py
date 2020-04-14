@@ -2,7 +2,7 @@ import math
 
 
 class Matrix:
-    KMAX = 10000
+    KMAX = 10
     EPSILON = 10 ** -16
 
     ##### OPERATIONS ######
@@ -113,8 +113,11 @@ class Matrix:
         return lines
 
     @staticmethod
-    def translate(filename):
+    def translate(filename, type="matrix"):
         lines = Matrix.readFromFile(filename)
+        if(type == "vector"):
+            del lines[-1]
+            return [float(lines[i]) for i in range(0, len(lines))]
         end = True
         store = {}
         size = None

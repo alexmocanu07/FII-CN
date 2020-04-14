@@ -1,6 +1,10 @@
 from Matrix import Matrix
 
 
+def _Norm(x):
+    return sum([x[i]**2 for i in range(0, len(x))])**(1/2)
+
+
 def _GaussSeidelLineGenerator(xp, a, b):
     # just to make sure the indexes are available for overriding values after computation
     xc = [0] * len(xp)
@@ -40,22 +44,27 @@ def _GaussSeidelLineGenerator(xp, a, b):
     return xc
 
 
-# def GaussSeidel(matrix, free):
-#     xc = xp = [0] * len(free)
-#     k = 0
-#     while (True):
-#         xp = xc
-#         # compute xc with the formula
-#         # compute delta x
-#         k += 1
-#         if (delta >= Matrix.EPSILON and k <= Matrix and delta <= 10**8):
-#             break
+def GaussSeidel(matrix, free):
+    xc = xp = [0] * len(free)
+    k = 0
+    delta = None
+    while (True):
+        xp = xc
+        xc = _GaussSeidelLineGenerator(xp, matrix, free)
+        print(k, xc)
+        delta = _Norm([xc[i] - xp[i] for i in range(0, len(xc))])
+        k += 1
+        if (delta >= Matrix.EPSILON and k <= Matrix.KMAX and delta <= 10**8):
+            break
+    if(delta != None and delta < Matrix.EPSILON):
+        return xc
+    print("Divergență")
+    return None
 
 
 ##################
 
-a = Matrix.translate("practice/a.txt")
-b = [6.0, 7.0, 8.0, 9.0, 1.0]
-x = [1.0, 2.0, 3.0, 4.0, 5.0]
+a = Matrix.translate("a_1.txt", "matrix")
+b = Matrix.translate("b_1.txt", "vector")
 
-print(_GaussSeidelLineGenerator(x, a, b))
+print(GaussSeidel(a, b))

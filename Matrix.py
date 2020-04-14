@@ -95,12 +95,50 @@ class Matrix:
                             # find the matching bCell
                             indexes = [index for index in range(
                                 0, len(bLine)) if bLine[index][1] == aCell[1]]
-                            if(indexes is not None and len(indexes) > 0):
+                            if (indexes is not None and len(indexes) > 0):
                                 bCell = bLine[indexes[0]]
                                 sum += aCell[0] * bCell[0]
-                        if(sum > 0):
+                        if (sum > 0):
                             result[aLineIndex].append([sum, bLineIndex])
         return result
+    @staticmethod
+    def multiply_v2(a, b_temp):
+        result = {}
+        # 🚨 to make multiplication easier, we use the transpose
+        b = Matrix.sortMatrix(Matrix.transpose(b_temp.copy()))
+        print("Start multiply\n")
+        for a_line in a.keys():
+            # print("[AAAAAAAAAAAAAAAAA] " + str(a_line) + "\n", end="")
+            for b_line in b.keys():
+                # print("[BBBBB] " + str(b_line) + '\n', end="")
+                a_list = a[a_line]
+                b_list = b[b_line]
+
+                a_index = 0
+                b_index = 0
+
+                sum = 0
+
+                while a_index < len(a_list) and b_index < len(b_list):
+                    a_col = a_list[a_index][1]
+                    b_col = b_list[b_index][1]
+                    if a_col < b_col:
+                        a_index += 1
+                    elif a_col == b_col:
+                        sum += a_list[a_index][0] * b_list[b_index][0]
+                        a_index += 1
+                        b_index += 1
+                    else:
+                        b_index += 1
+
+                if sum > 0:
+                    if a_line in result:
+                        result[a_line].append([sum, b_line])
+                    else:
+                        result[a_line] = [[sum, b_line]]
+        print("end multiply")
+        return result
+
 
     ###### UTILITY FUNCTIONS ######
 
@@ -111,6 +149,32 @@ class Matrix:
         for x in f:
             lines.append(x.rstrip())
         return lines
+    @staticmethod
+    def getMatrix(filename):
+        lines = Matrix.readFromFile(filename)
+        lines.pop(0)
+        matrix = dict()
+        for line in lines:
+            data = line.split(", ")
+            if len(data) != 3:
+                continue
+            number = float(data[0])
+            lin = int(data[1])
+            col = int(data[2])
+            elt = matrix.get(lin, "none")
+            if elt == "none":
+                matrix[lin] = [[number,col]]
+            else:
+                exists = False
+                for cell in elt:
+                    if cell[1] == col:
+                        cell[0] += number
+                        exists = True
+                        break
+                if not exists:
+                    matrix[lin].append([number, col])
+        return Matrix.sortMatrix(matrix)
+
 
     @staticmethod
     def translate(filename, type="matrix"):
@@ -150,7 +214,15 @@ class Matrix:
 
         # to save space, empty line will not be stored
         # to recreate the matrix, we get the max line (last key in sorted dictionary) and use it in range
-        return store
+        return Matrix.sortMatrix(store)
+    @staticmethod
+    def sortMatrix(matrix):
+        matrix2 = dict(sorted(matrix.items()))
+        matrix = matrix2
+        for k in matrix.keys():
+            matrix[k].sort(key = lambda x: x[1])
+
+        return matrix
 
     @staticmethod
     def printTranslated(matrix):

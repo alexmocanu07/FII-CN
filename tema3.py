@@ -1,8 +1,12 @@
 from Matrix import Matrix
+import time
 
 
 a = Matrix.translate("a.txt")
+
 b = Matrix.translate("b.txt")
+print(b)
+
 # Matrix.printTranslated(a)
 # Matrix.printTranslated(b)
 
@@ -15,7 +19,11 @@ print("OK: a + b = aplusb" if Matrix.compare(aplusb,
 
 
 aorib = Matrix.translate("aorib.txt")
-aoribcomputed = Matrix.multiply(a, b)
+start = time.time()
+aoribcomputed = Matrix.multiply_v2(a, b)
+print(time.time() - start)
+
+# print(aoribcomputed)
 
 print("OK: a * b = aorib" if Matrix.compare(aorib,
                                             aoribcomputed) else "NOPE: a * b != aorib")

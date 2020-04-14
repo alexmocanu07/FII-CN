@@ -3,7 +3,8 @@ from Matrix import Matrix
 
 a = Matrix.translate("a.txt")
 b = Matrix.translate("b.txt")
-
+# Matrix.printTranslated(a)
+# Matrix.printTranslated(b)
 
 aplusb = Matrix.translate("aplusb.txt")
 aplusbcomputed = Matrix.add(a, b)

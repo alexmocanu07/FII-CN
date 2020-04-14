@@ -2,8 +2,8 @@ import math
 
 
 class Matrix:
-    EPSILON = 0.000001
     KMAX = 10000
+    EPSILON = 10 ** -16
 
     ##### OPERATIONS ######
 

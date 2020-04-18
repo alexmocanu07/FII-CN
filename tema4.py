@@ -121,10 +121,28 @@ def GaussSeidel(matrix, free):
     else :
         return "DIVERGENTA"
 
+def infinityNorm(v1, v2):
+    max = abs(v1[0] - v2[0])
+    for i in range(1, len(v1)):
+        if max < abs(v1[i] - v2[i]):
+            max = abs(v1[i] - v2[i])
+    return max
 
+def computeAxGS(A, x):
+    result = list()
+    for i in range(len(A)):
+        sum = 0
+        for poz in range(len(A[i])):
+            col = A[i][poz][1]
+            sum += A[i][poz][0] * x[col]
+        result.append(sum)
+    return result
 ##################
 
-a = Matrix.getMatrix("a_5.txt", "matrix")
-b = Matrix.getMatrix("b_5.txt", "vector")
+a = Matrix.getMatrix("a_3.txt", "matrix")
+b = Matrix.getMatrix("b_3.txt", "vector")
 # b = [6,7,8,9,1]
-print(GaussSeidel(a, b))
+result = GaussSeidel(a, b)
+print("Rezultatul sistemului: " + str(result))
+print("Norma: " + str(infinityNorm(computeAxGS(a, result), b)))
+

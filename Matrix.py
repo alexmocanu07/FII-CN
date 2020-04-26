@@ -54,7 +54,7 @@ class Matrix:
         for lineKey in a:
             # line from a is missing from b
             if(lineKey not in b):
-                print("1")
+                # print("1")
                 return False
             # cell count on line is different
             if len(a[lineKey]) != len(b[lineKey]):
@@ -71,12 +71,12 @@ class Matrix:
                     0, len(bLine)) if bLine[index][1] == aCell[1]]
                 # if bCell is missing (no index found), a != b
                 if indexes is None or len(indexes) != 1:
-                    print("3")
+                    # print("3")
                     return False
                 else:
                     # if bCell is there, but its value is EPSILON-different than the one in aCell, a != b
                     if abs(bLine[indexes[0]][0] - aCell[0]) >= Matrix.EPSILON:
-                        print("4")
+                        # print("4")
                         return False
         return True
 
@@ -191,7 +191,7 @@ class Matrix:
                 if not exists:
                     transpose[lin].append([number, col])
 
-        return Matrix.sortMatrix(matrix), Matrix.sortMatrix(transpose)
+        return Matrix.sortMatrix(Matrix.erase_null_values(matrix)), Matrix.sortMatrix(Matrix.erase_null_values(transpose))
 
 
     @staticmethod
@@ -234,7 +234,7 @@ class Matrix:
 
         # to save space, empty line will not be stored
         # to recreate the matrix, we get the max line (last key in sorted dictionary) and use it in range
-        return Matrix.sortMatrix(store)
+        return Matrix.sortMatrix(Matrix.erase_null_values(store))
     @staticmethod
     def sortMatrix(matrix):
         matrix2 = dict(sorted(matrix.items()))
@@ -242,6 +242,16 @@ class Matrix:
         for k in matrix.keys():
             matrix[k].sort(key = lambda x: x[1])
 
+        return matrix
+
+    @staticmethod
+    def erase_null_values(matrix):
+        for k in matrix.keys():
+            newLine = []
+            for elt in matrix[k]:
+                if elt[0] != 0:
+                    newLine.append(elt)
+            matrix[k] = newLine
         return matrix
 
     @staticmethod

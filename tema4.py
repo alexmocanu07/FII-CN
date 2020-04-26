@@ -43,7 +43,7 @@ def GaussSeidel(matrix, free):
         looping = False
         for i in range(len(xp)):
             dif = abs(xc[i] - xp[i])
-            if dif > Matrix.EPSILON:
+            if dif > Matrix.EPSILON and dif < 10 ** 10:
                 looping = True
                 break
         k += 1
@@ -51,8 +51,9 @@ def GaussSeidel(matrix, free):
             break
     if not looping:
         return xc
-    else :
+    else:
         return "DIVERGENTA"
+
 
 def infinityNorm(v1, v2):
     max = abs(v1[0] - v2[0])
@@ -60,6 +61,7 @@ def infinityNorm(v1, v2):
         if max < abs(v1[i] - v2[i]):
             max = abs(v1[i] - v2[i])
     return max
+
 
 def computeAxGS(A, x):
     result = list()
@@ -73,10 +75,13 @@ def computeAxGS(A, x):
 
 ##################
 
-a = Matrix.getMatrix("a_4.txt", "matrix")
-b = Matrix.getMatrix("b_4.txt", "vector")
+a = Matrix.getMatrix("a_1.txt", "matrix")
+b = Matrix.getMatrix("b_1.txt", "vector")
 # b = [6,7,8,9,1]
 result = GaussSeidel(a, b)
-print("Rezultatul sistemului: " + str(result))
-print("Norma: " + str(infinityNorm(computeAxGS(a, result), b)))
+if result == "DIVERGENTA":
+    print("Divergenta")
+else:
+    print("Rezultatul sistemului: " + str(result))
+    print("Norma: " + str(infinityNorm(computeAxGS(a, result), b)))
 

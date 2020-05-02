@@ -4,7 +4,7 @@ class prob:
     n = None
     p = None
     KMAX = 10000
-    EPSILON = 10 ** -16
+    EPSILON = 10 ** -10
 
     def __init__(self):
         # prob.n = int(input("n=\n"))
@@ -13,10 +13,15 @@ class prob:
         prob.p = 500
 
         self.generated = self.generate_matrix()
+        self.generated = Matrix.erase_null_values(self.generated)
+        self.generated = Matrix.sortMatrix(self.generated)
         self.read, self.transpose = Matrix.getMatrixAndTranspose("../resurse_tema5/a_500.txt")
 
     def solve(self):
-        # print(prob.power_method(self, self.generated))
+
+        gen_v, gen_lmd = prob.get_values(self, self.generated)
+        print(gen_lmd)
+        print(gen_v)
         if Matrix.compare(self.read, self.transpose):
             print(prob.power_method(self, self.read))
 
@@ -30,7 +35,7 @@ class prob:
             x.append(number)
         x_norm = sum([x[i]**2 for i in range(len(x))])**(1/2)
         for i in range(self.n):
-            v[i] = 1.0 / x_norm * x[i]
+            v[i] = (1.0 / x_norm) * x[i]
 
         return v
 
@@ -68,14 +73,17 @@ class prob:
     @staticmethod
     def multiply_matrix_vector(matrix, vector):
         result = [0 for _ in range(prob.n)]
-        for i in matrix.keys():
-            sum = 0
-            for poz in range(len(matrix[i])):
-                col = matrix[i][poz][1]
+        for i in range(prob.n):
+            if i in matrix.keys():
+                sum = 0
+                for poz in range(len(matrix[i])):
+                    col = matrix[i][poz][1]
 
-                sum += matrix[i][poz][0] * vector[col]
+                    sum += matrix[i][poz][0] * vector[col]
 
-            result[i] = sum
+                result[i] = sum
+            else:
+                result[i] = 0
         return result
 
     @staticmethod
@@ -92,7 +100,7 @@ class prob:
 
     @staticmethod
     def scale_vector(vector, scalar):
-        return [vector[i] * scalar for i in range(len(vector))]
+        return [(vector[i] * scalar) for i in range(len(vector))]
 
     @staticmethod
     def euclidean_norm(v1, v2):
@@ -106,17 +114,29 @@ class prob:
         k = 0
         looping = True
         while looping:
+            looping = False
             v = prob.compute_v(w)
             w = prob.multiply_matrix_vector(matrix, v)
             lmd = prob.scalar_product(w, v)
             k += 1
             if k > prob.KMAX:
                 looping = False
-                return None
-            if prob.euclidean_norm(w, prob.scale_vector(v, lmd)) <= self.n * prob.EPSILON:
-                looping = False
+                return "None"
+            norm = prob.euclidean_norm(w, prob.scale_vector(v, lmd))
+            neps = prob.n * prob.EPSILON
+            if norm > neps:
+                looping = True
         return v, lmd
 
+    def get_values(self, matrix):
+        print("Trying with Kmax = " + str(self.KMAX) + " and epsilon = " + str(self.EPSILON) + "...")
+        result = self.power_method(matrix)
+        while result == "None":
+            self.KMAX += 10000
+            self.EPSILON *= 10
+            print("Trying with Kmax = " + str(self.KMAX) + " and epsilon = " + str(self.EPSILON) + "...")
+            result = self.power_method(matrix)
+        return result
 
 if __name__ == '__main__':
     p = prob()

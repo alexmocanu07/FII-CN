@@ -4,27 +4,57 @@ import numpy as np
 class prob:
     n = None
     p = None
-    KMAX = 10000
+    KMAX = 100000
     EPSILON = 10 ** -10
 
     def __init__(self):
-        # prob.n = int(input("n=\n"))
-        # self.p = int(input("p=\n"))
-        prob.n = 500
-        prob.p = 500
+        prob.n = int(input("n=\n"))
+        prob.p = int(input("p=\n"))
 
         self.generated = self.generate_matrix()
         self.generated = Matrix.erase_null_values(self.generated)
         self.generated = Matrix.sortMatrix(self.generated)
         self.read, self.transpose = Matrix.getMatrixAndTranspose("../resurse_tema5/a_500.txt")
 
-    def solve(self):
 
-        gen_v, gen_lmd = prob.get_values(self, self.generated)
-        print(gen_lmd)
-        print(gen_v)
-        if Matrix.compare(self.read, self.transpose):
-            print(prob.power_method(self, self.read))
+    def solve(self):
+        if prob.p == prob.n :
+            if prob.p < 500:
+                print("p si n trebuie sa fie mai mari ca 500. Programul se inchide...")
+                exit(0)
+            gen_v, gen_lmd = prob.get_values(self, self.generated)
+            print("Valoarea proprie de modul maxim a matricei generate este: " + str(gen_lmd))
+            print("Vectorul propriu asociat matricei generate este: " + str(gen_v))
+            if Matrix.compare(self.read, self.transpose):
+                read_v, read_lmd = prob.get_values(self, self.read)
+                print("Valoarea proprie de modul maxim a matricei din fisier este: " + str(read_lmd))
+                print("Vectorul propriu asociat matricei din fisier este: " + str(read_v))
+            else:
+                print("Matricea din fisier nu este simetrica.")
+        else:
+            matrix = prob.generate_classic_matrix(prob.p, prob.n)
+            free = [random.uniform(-10, 10) for _ in range(prob.p)]
+            singular_values = prob.get_singular_values(matrix)[1].tolist()
+            print("Valorile singulare sunt: " + str(singular_values))
+            print("Rangul matricei este: " + str(prob.get_matrix_rank(singular_values)))
+            print("Rangul matricei calculat cu numpy este: " + str(np.linalg.matrix_rank(matrix)))
+            print("Numarul de conditionare al matricei este: " + str(prob.get_matrix_condition(singular_values)))
+            print("Numarul de conditionare calculat cu numpy este: " + str(np.linalg.cond(matrix)))
+            pseudoInverse = prob.get_matrix_MoorePenrose(matrix)
+            # print("Pseudoinversa matricei este:\n" + str(pseudoInverse))
+            # print(np.linalg.pinv(matrix))
+            xI = prob.multiply_classic_matrix_vector(pseudoInverse, free)
+            # xI2 = prob.compute_xI(matrix, free)
+            # print("xI2 = " + str(xI2))
+            print("Solutia sistemului Ax = b este: " + str(xI))
+            Ax = prob.multiply_classic_matrix_vector(matrix, xI)
+            # print("A * Xi = " + str(Ax))
+            # print("free = " + str(free))
+            print("Norma intre pseudoinversa generata si cea din biblioteca: " + str(prob.get_norm_for_matrices(pseudoInverse, np.linalg.pinv(matrix).tolist())))
+            print("Norma b - Ax este: " + str(prob.euclidean_norm(free, Ax)))
+
+            inverse2 = prob.compute_smallest_square_inverse(matrix)
+            print("Norma intre inverse: " + str(prob.get_norm_for_matrices(pseudoInverse, inverse2)))
 
 
     def generate_vector_of_norm1(self):
@@ -131,16 +161,22 @@ class prob:
             neps = prob.n * prob.EPSILON
             if norm > neps:
                 looping = True
+        print("Found values after " + str(k) + " iterations.")
         return v, lmd
 
     def get_values(self, matrix):
-        print("Trying with Kmax = " + str(self.KMAX) + " and epsilon = " + str(self.EPSILON) + "...")
+        print("Trying to get values with Kmax = " + str(self.KMAX) + " and epsilon = " + str(self.EPSILON) + "...")
+        tries = 1
         result = self.power_method(matrix)
-        while result == "None":
-            self.KMAX += 10000
+        while result == "None" and tries < 5:
+            self.KMAX += 100000
             self.EPSILON *= 10
-            print("Trying with Kmax = " + str(self.KMAX) + " and epsilon = " + str(self.EPSILON) + "...")
+            tries +=1
+            print("Trying to get values with Kmax = " + str(self.KMAX) + " and epsilon = " + str(self.EPSILON) + "...")
             result = self.power_method(matrix)
+        if tries == 5:
+            print("Could not get values. Exiting...")
+            exit(0)
         return result
 
     @staticmethod
@@ -161,22 +197,26 @@ class prob:
         return max(singular_values) / min(singular_values)
 
     @staticmethod
-    def compute_sI(singular_values, linCount, colCount):
-        # linCount = p si colCount = n
-        sI=[[0 for _ in range(linCount)] for _ in range(colCount)]
+    def compute_sI(singular_values, p, n):
+        sI=[[0 for _ in range(p)] for _ in range(n)]
         positive_values = [value for value in singular_values if value > 0]
         for i in range(len(positive_values)):
             sI[i][i] = 1.0 / positive_values[i]
-        print(sI)
         return sI
 
     @staticmethod
     def multiply_matrixes(a, b):
+        if len(a[0]) != len(b):
+            print("Nu se poate face inmultirea intre matrici")
+            exit(-1)
         result = [[0 for _ in range(len(b[0]))] for _ in range(len(a))]
         for i in range(len(a)):
             for j in range(len(b[0])):
+                sum = 0
                 for k in range(len(b)):
-                    result[i][j] += a[i][k] * b[k][j]
+                    sum += a[i][k] * b[k][j]
+                result[i][j] = sum
+
         return result
 
     @staticmethod
@@ -186,47 +226,60 @@ class prob:
         singular_values = singular_values.tolist()
         v = v.tolist()
         sI=prob.compute_sI(singular_values, len(matrix), len(matrix[0]))
-        uT = np.matrix.transpose(np.array(u)).tolist()
-        return np.dot(np.dot(v, sI), uT)
+        uT = prob.get_matrix_transpose(u)
+        v = prob.get_matrix_transpose(v)
+        return prob.multiply_matrixes(prob.multiply_matrixes(v, sI), uT)
 
     @staticmethod
     def multiply_classic_matrix_vector(matrix, vector):
         result = [0 for _ in range(len(matrix))]
         for i in range(len(matrix)):
             sum = 0
-            for j in range(len(matrix[i])):
+            for j in range(len(vector)):
                 sum += vector[j] * matrix[i][j]
             result[i] = sum
         return result
 
     @staticmethod
-    def solve_system(matrix, free):
-        return np.linalg.lstsq(matrix, free)
+    def get_matrix_transpose(matrix):
+        result = [[0 for _ in range(len(matrix))] for _ in range(len(matrix[0]))]
+        for i in range(len(matrix)):
+            for j in range(len(matrix[0])):
+                result[j][i] = matrix[i][j]
+        return result
+
+    @staticmethod
+    def compute_smallest_square_inverse(matrix):
+        transpose = prob.get_matrix_transpose(matrix)
+        return prob.multiply_matrixes(np.linalg.inv(prob.multiply_matrixes(transpose, matrix)).tolist(), transpose)
+
+    @staticmethod
+    def get_norm_for_matrices(matrix1, matrix2):
+        dif = [[matrix1[i][j] - matrix2[i][j] for j in range(len(matrix1[0]))] for i in range(len(matrix1))]
+        for i in range(len(matrix1)):
+            for j in range(len(matrix1[0])):
+                dif[i][j] = matrix1[i][j] - matrix2[i][j]
+        max = dif[0][0]
+        for i in range(len(dif)):
+            for j in range(len(dif[0])):
+                if dif[i][j] > max:
+                    max = dif[i][j]
+
+        return max
+
+    @staticmethod
+    def compute_xI(matrix, free):
+        u, s, vT = np.linalg.svd(matrix)
+        v = prob.get_matrix_transpose(vT.tolist())
+        uT = prob.get_matrix_transpose(u.tolist())
+        sI = prob.compute_sI(s.tolist(), len(matrix), len(matrix[0]))
+        vsI = prob.multiply_matrixes(v, sI)
+        vsIuT = prob.multiply_matrixes(vsI, uT)
+        xI = prob.multiply_classic_matrix_vector(vsIuT, free)
+        return xI
 
 if __name__ == '__main__':
     p = prob()
-    # p.solve()
-    linCount = 10
-    colCount = 7
-    matrix = prob.generate_classic_matrix(linCount, colCount)
-    free = [round(random.uniform(-10, 10), 2) for _ in range(linCount)]
-    singular_values = prob.get_singular_values(matrix)[1].tolist()
-    print(singular_values)
-    print(prob.get_matrix_rank(singular_values))
-    print(prob.get_matrix_condition(singular_values))
-    # print(np.linalg.cond(matrix))
-    # print(u)
-    # print(v)
-    pseudoInverse = prob.get_matrix_MoorePenrose(matrix)
-    print(pseudoInverse)
-    print(np.linalg.pinv(matrix))
-    # pinv = prob.get_matrix_MoorePenrose(matrix)
-    # print(pinv)
-    xI = prob.multiply_classic_matrix_vector(pseudoInverse, free)
-    print(xI)
+    p.solve()
 
-    print(prob.euclidean_norm(free, prob.multiply_classic_matrix_vector(matrix, xI)))
-    # solution = prob.solve_system(matrix, free)
-    # print(solution)
-    # print(prob.euclidean_norm(free, prob.multiply_classic_matrix_vector(matrix, solution)))
 

@@ -11,7 +11,7 @@ class prob:
         prob.n = int(input("n=\n"))
         prob.p = int(input("p=\n"))
 
-        self.generated = self.generate_matrix()
+        self.generated = self.generate_rare_matrix()
         self.generated = Matrix.erase_null_values(self.generated)
         self.generated = Matrix.sortMatrix(self.generated)
         self.read, self.transpose = Matrix.getMatrixAndTranspose("../resurse_tema5/a_500.txt")
@@ -57,21 +57,9 @@ class prob:
             print("Norma intre inverse: " + str(prob.get_norm_for_matrices(pseudoInverse, inverse2)))
 
 
-    def generate_vector_of_norm1(self):
-        random.seed()
-        x = list()
-        v = [0 for _ in range(self.n)]
-        for _ in range(self.n):
-            number = random.randint(1, 100)
-            x.append(number)
-        x_norm = sum([x[i]**2 for i in range(len(x))])**(1/2)
-        for i in range(self.n):
-            v[i] = (1.0 / x_norm) * x[i]
-
-        return v
 
 
-    def generate_matrix(self):
+    def generate_rare_matrix(self):
         A = dict()
         random.seed()
         for i in range(self.n):
@@ -79,7 +67,7 @@ class prob:
             while loop:
                 lin = random.randint(0, self.n - 1)
                 col = random.randint(0, self.n - 1)
-                nr = round(random.uniform(0, 100), 2)
+                nr = round(random.uniform(10 ** -5, 100), 2)
                 elt = A.get(lin, "none")
                 if elt == "none":
                     A[lin] = [[nr, col]]
@@ -87,8 +75,8 @@ class prob:
                     loop = False
                 else:
                     index = [i for i in range(len(elt)) if elt[i][1] == col]
-                    if not index:
-                        if lin != col:
+                    if not index: # nu am element la a[i][j]
+                        if lin != col: # daca trebuie sa pun si la a[i][j] si la a[j][i]
                             A[lin].append([nr, col])
                             elt = A.get(col, "none")
                             if elt == "none":
@@ -107,18 +95,14 @@ class prob:
 
     @staticmethod
     def multiply_matrix_vector(matrix, vector):
-        result = [0 for _ in range(prob.n)]
-        for i in range(prob.n):
+        result = [0 for _ in range(len(vector))]
+        for i in range(len(vector)):
+            sum = 0
             if i in matrix.keys():
-                sum = 0
-                for poz in range(len(matrix[i])):
-                    col = matrix[i][poz][1]
-
-                    sum += matrix[i][poz][0] * vector[col]
-
-                result[i] = sum
-            else:
-                result[i] = 0
+                for elt in matrix[i]:
+                    col = elt[1]
+                    sum += vector[col] * elt[0]
+            result[i] = sum
         return result
 
     @staticmethod
@@ -142,8 +126,24 @@ class prob:
         diff = [v1[i] - v2[i] for i in range(len(v1))]
         return sum([diff[i]**2 for i in range(len(diff))])**(1/2)
 
+    @staticmethod
+    def generate_vector_of_norm1(size):
+        random.seed()
+        x = list()
+        v = [0 for _ in range(size)]
+        for _ in range(size):
+            number = random.uniform(-10, 10)
+            while number == 0 or number < prob.EPSILON:
+                number = random.uniform(-10, 10)
+            x.append(number)
+        x_norm = sum([x[i] ** 2 for i in range(len(x))]) ** (1 / 2)
+        for i in range(size):
+            v[i] = (1.0 / x_norm) * x[i]
+
+        return v
+
     def power_method(self, matrix):
-        v = prob.generate_vector_of_norm1(self)
+        v = prob.generate_vector_of_norm1(self.n)
         w = prob.multiply_matrix_vector(matrix, v)
         lmd = prob.scalar_product(w, v)
         k = 0
